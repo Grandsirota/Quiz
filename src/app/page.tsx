@@ -1,101 +1,151 @@
-import Image from "next/image";
+"use client";  // เพิ่มบรรทัดนี้เพื่อระบุให้ไฟล์นี้ทำงานในฝั่ง Client
 
-export default function Home() {
+import React, { useState, useEffect } from 'react';
+import { Line } from 'react-chartjs-2';
+import { Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+
+Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
+const IncomeExpenseTracker: React.FC = () => {
+  // สร้าง state สำหรับเก็บข้อมูลต่างๆ
+  const [entries, setEntries] = useState<any[]>([]);
+  const [amount, setAmount] = useState<number>(0);
+  const [date, setDate] = useState<string>('');
+  const [type, setType] = useState<string>('income');
+  const [note, setNote] = useState<string>('');
+
+  const [totalIncome, setTotalIncome] = useState<number>(0);
+  const [totalExpense, setTotalExpense] = useState<number>(0);
+
+  // ฟังก์ชันสำหรับเพิ่มรายการใหม่
+  const handleAddEntry = () => {
+    const newEntry = {
+      amount: parseFloat(amount.toString()),
+      date: date,
+      type: type,
+      note: note
+    };
+
+    setEntries([...entries, newEntry]);
+  };
+
+  // คำนวณยอดรวมรายรับและรายจ่าย
+  useEffect(() => {
+    const income = entries
+      .filter(entry => entry.type === 'income')
+      .reduce((acc, entry) => acc + entry.amount, 0);
+    const expense = entries
+      .filter(entry => entry.type === 'expense')
+      .reduce((acc, entry) => acc + entry.amount, 0);
+
+    setTotalIncome(income);
+    setTotalExpense(expense);
+  }, [entries]);
+
+  // ข้อมูลสำหรับกราฟ
+  const chartData = {
+    labels: entries.map(entry => entry.date),
+    datasets: [
+      {
+        label: 'รายรับ',
+        data: entries
+          .filter(entry => entry.type === 'income')
+          .map(entry => entry.amount),
+        borderColor: 'green',
+        fill: false,
+      },
+      {
+        label: 'รายจ่าย',
+        data: entries
+          .filter(entry => entry.type === 'expense')
+          .map(entry => entry.amount),
+        borderColor: 'red',
+        fill: false,
+      }
+    ],
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="container">
+      <h1>โปรแกรมบันทึกรายรับรายจ่าย</h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      {/* ฟอร์มสำหรับบันทึกรายการ */}
+      <div className="form">
+        <input
+          type="number"
+          placeholder="จำนวนเงิน"
+          value={amount}
+          onChange={(e) => setAmount(parseFloat(e.target.value))}
+        />
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+        />
+        <select value={type} onChange={(e) => setType(e.target.value)}>
+          <option value="income">รายรับ</option>
+          <option value="expense">รายจ่าย</option>
+        </select>
+        <input
+          type="text"
+          placeholder="โน้ต"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+        <button onClick={handleAddEntry}>เพิ่มรายการ</button>
+      </div>
+
+      {/* แสดงยอดรวมรายรับและรายจ่าย */}
+      <div className="summary">
+        <h2>ยอดรวมรายรับ: {totalIncome} บาท</h2>
+        <h2>ยอดรวมรายจ่าย: {totalExpense} บาท</h2>
+      </div>
+
+      {/* แสดงรายการที่บันทึก */}
+      <div className="entries">
+        <h3>รายการที่บันทึก:</h3>
+        <ul>
+          {entries.map((entry, index) => (
+            <li key={index}>
+              {entry.date} - {entry.type === 'income' ? 'รายรับ' : 'รายจ่าย'}: {entry.amount} บาท (โน้ต: {entry.note})
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* แสดงกราฟ */}
+      <div className="chart">
+        <h3>กราฟรายรับและรายจ่าย</h3>
+        <Line data={chartData} />
+      </div>
+
+      <style jsx>{`
+        .container {
+          padding: 20px;
+          max-width: 800px;
+          margin: 0 auto;
+        }
+        .form {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 20px;
+        }
+        .summary, .entries, .chart {
+          margin-bottom: 20px;
+        }
+        input, select, button {
+          padding: 10px;
+          font-size: 16px;
+        }
+        button {
+          background-color: blue;
+          color: white;
+          border: none;
+          cursor: pointer;
+        }
+      `}</style>
     </div>
   );
-}
+};
+
+export default IncomeExpenseTracker;
